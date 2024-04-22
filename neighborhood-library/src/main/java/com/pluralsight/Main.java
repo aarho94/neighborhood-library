@@ -12,9 +12,9 @@ public class Main {
         scanner = new Scanner(System.in);
     }
 
-    // Method to populate initial book data
+    // method to populate initial book data
     private void initializeBooks() {
-        // Sample young adult novels
+        // novels
         String[] titles = {
                 "The Hunger Games",
                 "Harry Potter and the Sorcerer's Stone",
@@ -61,13 +61,13 @@ public class Main {
                 "9780061786180"
         };
 
-        // Populate books array with random young adult novels
+        // populate books array with random young adult novels
         for (int i = 0; i < titles.length; i++) {
             books.add(new Book(i + 1, isbns[i], titles[i]));
         }
     }
 
-    // Method to display the store home screen
+    // method to display the home screen
     private void displayHomeScreen() {
         System.out.println("Welcome to the Library!");
         System.out.println("Choose an option:");
@@ -76,7 +76,7 @@ public class Main {
         System.out.println("3. Exit");
     }
 
-    // Method to handle user input and navigate between screens
+    // method to handle user input and navigate between screens
     public void run() {
         initializeBooks();
         boolean running = true;
@@ -102,7 +102,7 @@ public class Main {
         scanner.close();
     }
 
-    // Method to display available books
+    // Method to display available books and handle book checkout
     private void showAvailableBooks() {
         System.out.println("Available Books:");
         for (Book book : books) {
@@ -110,13 +110,60 @@ public class Main {
                 System.out.println(book.getId() + " - " + book.getIsbn() + " - " + book.getTitle());
             }
         }
-        System.out.println("Enter ID to check out a book, or type 'X' to go back.");
+        System.out.println("Enter the 2-digit ID OR 13-digit ISBN to check out a book, or type 'X' to go back.");
         String input = scanner.nextLine();
         if (input.equalsIgnoreCase("X")) {
             return;
         }
-        int bookId = Integer.parseInt(input);
-        // Implement book checkout logic here
+
+        try {
+            int bookId = Integer.parseInt(input);
+            // Find the book by ID
+            Book selectedBook = findBookById(bookId);
+            processCheckout(selectedBook);
+        } catch (NumberFormatException e) {
+            // If input is not an ID, assume it's an ISBN and try to find the book
+            Book selectedBook = findBookByISBN(input);
+            processCheckout(selectedBook);
+        }
+    }
+
+    // Method to find a book by ID
+    private Book findBookById(int bookId) {
+        for (Book book : books) {
+            if (book.getId() == bookId) {
+                return book;
+            }
+        }
+        return null; // Book not found
+    }
+
+    // Method to find a book by ISBN
+    private Book findBookByISBN(String isbn) {
+        for (Book book : books) {
+            if (book.getIsbn().equals(isbn)) {
+                return book;
+            }
+        }
+        return null; // Book not found
+    }
+
+    // Method to process book checkout
+    private void processCheckout(Book selectedBook) {
+        if (selectedBook != null) {
+            // Check if the selected book is available for checkout
+            if (!selectedBook.isCheckedOut()) {
+                // Prompt user for name
+                System.out.println("Enter your name:");
+                String name = scanner.nextLine();
+                // Check out the book
+                selectedBook.checkOut(name);
+            } else {
+                System.out.println("Sorry, this book is already checked out.");
+            }
+        } else {
+            System.out.println("Invalid book ID or ISBN.");
+        }
     }
 
     // Method to display checked out books
@@ -127,19 +174,42 @@ public class Main {
                 System.out.println(book.getId() + " - " + book.getIsbn() + " - " + book.getTitle() + " - Checked out to: " + book.getCheckedOutTo());
             }
         }
-        System.out.println("Enter 'C' to check in a book, or 'X' to go back.");
+        System.out.println("Enter 'C' followed by the book ID to check in a book, or 'X' to go back.");
         String input = scanner.nextLine();
         if (input.equalsIgnoreCase("X")) {
             return;
         }
-        if (input.equalsIgnoreCase("C")) {
-            // Implement check-in logic here
+        if (input.toUpperCase().startsWith("C")) {
+            try {
+                int bookId = Integer.parseInt(input.substring(1).trim());
+                checkInBook(bookId);
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input. Please enter a valid book ID to check in.");
+            }
+        } else {
+            System.out.println("Invalid input. Please enter 'C' followed by the book ID to check in.");
         }
     }
 
-    // Method to check in a book
+
+
+    // method to check in a book
     private void checkInBook(int bookId) {
-        // Implement check-in logic here
+        // find the book with the given ID
+        Book selectedBook = null;
+        for (Book book : books) {
+            if (book.getId() == bookId) {
+                selectedBook = book;
+                break;
+            }
+        }
+
+        // check if the selected book is checked out and process check-in
+        if (selectedBook != null && selectedBook.isCheckedOut()) {
+            selectedBook.checkIn();
+        } else {
+            System.out.println("Invalid book ID or book is not checked out.");
+        }
     }
 
     public static void main(String[] args) {
